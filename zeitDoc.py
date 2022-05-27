@@ -9,6 +9,8 @@ from random import randint
 
 cal = calendar.Calendar()
 
+
+
 #Beispielaufruf python zeitDoc.py "Meidinger, Max" 2020-10 2021-2 10
 
 #TODO find truly random seed ?
@@ -58,7 +60,7 @@ endDateField = "(bis)"
 name=sys.argv[1]
 startDate=sys.argv[2]
 endDate=sys.argv[3]
-hours=int(sys.argv[4])
+hours=float(sys.argv[4])
 
 startYear = int(startDate.split('-')[0])
 startMonth = int(startDate.split('-')[1])
