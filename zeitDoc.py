@@ -13,7 +13,6 @@ cal = calendar.Calendar()
 
 #Beispielaufruf python zeitDoc.py "Meidinger, Max" 2020-10 2021-2 10
 
-#TODO find truly random seed ?
 seed(40)
 
 class FormEntry:
@@ -179,7 +178,7 @@ fill_field(str(entry.day)+"."+str(entry.month)+"."+str(entry.year), "(bis)")
 pdf_full()
 print(str(filecount) + " File(s) generated!")
 
-print("Average " + str(summe/gesTage) + " Stunden pro Tag")
+print("Filled in " + summe + " Hours")
         
 
 
