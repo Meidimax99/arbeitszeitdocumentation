@@ -1,5 +1,19 @@
 import pdfrw
 
+# Data for form
+outPath = "./Docs/"
+nameField = "(Name, Vorname)"
+beginDateField = "(von)"
+endDateField = "(bis)"
+
+#Metrics
+filecount = 0
+
+#TODO this is shit
+global entries
+entries = 0
+
+
 template = pdfrw.PdfReader("template.pdf")
 def find_field(ident):
     fields = template.Root.AcroForm.Fields
@@ -58,3 +72,15 @@ def fill_row(rowNum, entry):
         fill_field(str(entry.date.day) + "." + str(entry.date.month) + "." + str(entry.date.year), "(bis)")
 
     return
+
+#External Functions
+
+def addEntry(formEntry):
+    global entries
+    if entries == 0:
+        setupPDF()
+
+
+def setUp(documenterName):
+    global name
+    name = documenterName

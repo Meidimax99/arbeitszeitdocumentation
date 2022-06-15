@@ -1,9 +1,8 @@
 #!/usr/bin/python
 
-
 import calendar
-import sys
 import datetime
+import form
 from random import seed
 from random import random
 from random import randint
@@ -12,17 +11,10 @@ cal = calendar.Calendar()
 
 
 
-#Beispielaufruf python zeitDoc.py "Meidinger, Max" 2020-10 2021-2 10
-
-
-#TODO User Normal Distribution Random Number
-
-#TODO Make input dependent on hours/month not week
-
-#TODO exclude holidays
 seed(40)
 
-class FormEntry:
+class WorkTime:
+    #Constructor
     def __init__(self, date, hours):
         self.date = date
         self.hours = hours
@@ -35,53 +27,73 @@ class FormEntry:
     def determineEndTime(self):
         start = self.starttime
         return start[0] + str(int(start[1]) + self.hours) + start[2:]
-         
 
-#Should fill the zeitDoc Form with given Parameters
+#A Object of the Class TimeDocumention represents a List of WorkTimes
+#
+class TimeDocumentation:
+    def __init__(self, name):
+        self.name = name
+        self.workDates = []
+        #TODO Needs more metrics here!!!
+        self.overallHours = 0
+        #self.avrgMonthlyHours = 0
+        self.daysWorked = 0
 
-#Arguments
-#Name - String - "Max Musterman"
-#Zeitraum - Begindatum bis Endedatum -> 2 Args
-#Wochenstunden
+    #TODO Problem: More dates are added to a month in which all hours are already worked
+        # Simple approach: Just count hours worked in the month and stop adding dates after the maximum is reached
+        # Better: Randomize how the hours are added, skip some days, etc and draw workhours from a normal distribution
 
-#access args with sys.argv 
+    def addDates(self, monthlyHours, startDate, endDate):
 
-#init Params here
-#Just with hardcoded ones for now
-#defs for fieldnames
+        #TODO Count actual work days in the time period, excluding local holidays
+        daily_work_hours = monthlyHours / (4*5)
+
+        currentHours = 0
+
+        currentMonth = startDate.month
+        currentYear = startDate.year
+        #Iterate through specified period month by month
+        while not (currentYear == endDate.year and currentMonth == endDate.month + 1):
+            #iterate through a month day by day
+            for x in cal.itermonthdates(currentYear, currentMonth):
+                #Is the day not on a weekend
+                if x.weekday() not in range(5, 7):
+                    #Iteration through month days can include edge days, like the first of the next month etc ...
+                    if x.month != currentMonth:
+                        continue
+                    self.workDates.append(WorkTime(x,daily_work_hours))
+                    currentHours += daily_work_hours
+                    if currentHours >= monthlyHours:
+                        currentHours = 0
+                        break
+
+            if currentMonth == 12:
+                currentMonth = 1
+                currentYear += 1
+            else:
+                currentMonth += 1
 
 
+#TODO split iterate function up:
+    def _iterateYear(self):
+        pass
+    def iterateMonth(self,year,month):
+        pass
 
-outPath = "./Docs/"
+    def generatePDF(self):
+        form.setUp(self.name)
+        for entry in self.workDates:
+            form.addEntry(entry)
 
-filecount = 0
+    def printMetrics(self):
+        print("Hours Worked: ",self.overallHours, "Days worked: ", self.daysWorked)
 
-nameField = "(Name, Vorname)"
-beginDateField = "(von)"
-endDateField = "(bis)"
-#always takes the template.pdf in the same directory
+    def generateMetrics(self):
+        self.daysWorked = len(self.workDates)
+        self.overallHours = 0
+        for entry in self.workDates:
+            self.overallHours += entry.hours
 
-
-#CL Arguments
-name=sys.argv[1]
-startDate=sys.argv[2]
-endDate=sys.argv[3]
-hours=float(sys.argv[4])
-
-startYear = int(startDate.split('-')[0])
-startMonth = int(startDate.split('-')[1])
-endYear = int(endDate.split('-')[0])
-endMonth = int(endDate.split('-')[1])
-
-global summe, gesTage
-summe = 0
-gesTage = 0
-
-def randomHour():
-    tage = 5
-    avrg = hours / tage
-    #currentAvrg = summe / gesTage
-    return round(random() * ((avrg*2)-1))
 
 def last_day_of_month(dateFormat):
     day = datetime.datetime.strptime(dateFormat, "%Y-%m").date()
@@ -91,50 +103,29 @@ def last_day_of_month(dateFormat):
     # subtract the number of remaining 'overage' days to get last day of current month, or said programattically said, the previous day of the first of next month
     return next_month - datetime.timedelta(days=next_month.day)
 
-def first_day_of_montj(dateFormat):
-    return datetime.datetime.strptime(dateFormat, "%Y-%m").date()
 
 
+#setupPDF()
 
-def iterateMonths():
-    global summe, gesTage
-    counter = 1
-    currentMonth = startMonth
-    currentYear = startYear
-    while not (currentYear == endYear and currentMonth == endMonth):
-        for x in cal.itermonthdates(currentYear, currentMonth):
-            if x.weekday() not in range(5,7):
-                if x.month != currentMonth:
-                    continue
-                #TODO Randow Hour Values
-                randomNum = randomHour()
-                if randomNum == 0:
-                    continue
-                fill_row(counter, FormEntry(x, randomNum))
-                summe += randomNum
-                gesTage += 1
-                if counter == 13:
-                    counter = 0
-                    pdf_full()
-                counter += 1
-        if currentMonth == 12:
-            currentMonth = 1
-            currentYear += 1
-        else:
-            currentMonth += 1
-
-setupPDF()
-
-iterateMonths()
+#iterateMonths()
 
 #Set end date for last document 
-entry = last_day_of_month(endDate)
-fill_field(str(entry.day)+"."+str(entry.month)+"."+str(entry.year), "(bis)")
+#entry = last_day_of_month(endDate)
+#fill_field(str(entry.day)+"."+str(entry.month)+"."+str(entry.year), "(bis)")
 
-pdf_full()
-print(str(filecount) + " File(s) generated!")
+#pdf_full()
+#print(str(filecount) + " File(s) generated!")
 
-print("Filled in " + summe + " Hours")
+#print("Filled in " + summe + " Hours")
+def start(name,hours,startDate, endDate):
+    print("Process init with params: \n",name,hours,startDate, endDate)
+    timeDoc = TimeDocumentation(name)
+    timeDoc.addDates(hours,startDate,endDate)
+    timeDoc.generateMetrics()
+    timeDoc.printMetrics()
+    timeDoc.generatePDF()
+
+
         
 
 
