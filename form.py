@@ -79,6 +79,11 @@ def addEntry(formEntry):
     global entries
     if entries == 0:
         setupPDF()
+    if entries == 13:
+        pdf_full()
+        #TODO setupPDF()?
+
+
 
 
 def setUp(documenterName):
