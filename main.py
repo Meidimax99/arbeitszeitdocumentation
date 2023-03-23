@@ -22,6 +22,7 @@ def processCommandLineARGS():
 
 
 def main():
+    print("Asdasdas")
     processCommandLineARGS()
     zeitDoc.start(name,hours,startDate, endDate)
 
