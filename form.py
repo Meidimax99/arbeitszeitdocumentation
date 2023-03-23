@@ -9,8 +9,6 @@ endDateField = "(bis)"
 #Metrics
 filecount = 0
 
-#TODO this is shit
-global entries
 entries = 0
 
 
@@ -77,11 +75,18 @@ def fill_row(rowNum, entry):
 
 def addEntry(formEntry):
     global entries
+
     if entries == 0:
         setupPDF()
+    entries += 1
+    fill_row(entries,formEntry)
     if entries == 13:
         pdf_full()
-        #TODO setupPDF()?
+        entries = 0
+        setupPDF()
+
+def finalize():
+    pdf_full()
 
 
 

@@ -9,7 +9,8 @@ from random import randint
 
 cal = calendar.Calendar()
 
-
+#rng
+import numpy as np
 
 seed(40)
 
@@ -17,7 +18,7 @@ class WorkTime:
     #Constructor
     def __init__(self, date, hours):
         self.date = date
-        self.hours = hours
+        self.hours = int(hours)
         self.starttime = self.determineStartTime()
         self.endtime = self.determineEndTime()
 
@@ -26,7 +27,7 @@ class WorkTime:
     
     def determineEndTime(self):
         start = self.starttime
-        return start[0] + str(int(start[1]) + self.hours) + start[2:]
+        return start[0] + str(int(start[1]) + int(self.hours)) + start[2:]
 
 #A Object of the Class TimeDocumention represents a List of WorkTimes
 #
@@ -48,24 +49,12 @@ class TimeDocumentation:
         #TODO Count actual work days in the time period, excluding local holidays
         daily_work_hours = monthlyHours / (4*5)
 
-        currentHours = 0
-
         currentMonth = startDate.month
         currentYear = startDate.year
         #Iterate through specified period month by month
         while not (currentYear == endDate.year and currentMonth == endDate.month + 1):
-            #iterate through a month day by day
-            for x in cal.itermonthdates(currentYear, currentMonth):
-                #Is the day not on a weekend
-                if x.weekday() not in range(5, 7):
-                    #Iteration through month days can include edge days, like the first of the next month etc ...
-                    if x.month != currentMonth:
-                        continue
-                    self.workDates.append(WorkTime(x,daily_work_hours))
-                    currentHours += daily_work_hours
-                    if currentHours >= monthlyHours:
-                        currentHours = 0
-                        break
+
+            self.iterateMonth(currentYear,currentMonth,monthlyHours)
 
             if currentMonth == 12:
                 currentMonth = 1
@@ -77,13 +66,39 @@ class TimeDocumentation:
 #TODO split iterate function up:
     def _iterateYear(self):
         pass
-    def iterateMonth(self,year,month):
-        pass
+    def iterateMonth(self,year,month,monthlyHours):
+        #Collect days that are workable
+        workDays = []
+        for date in cal.itermonthdates(year, month):
+            # Is the day not on a weekend
+            if date.weekday() not in range(5, 7):
+                # Iteration through month days can include edge days, like the first of the next month etc ...
+                if date.month != month:
+                    continue
+                workDays.append(date)
+                #
+        #TODO Refine by removing holidays
+        #filter...
+        dayAvrgHours = monthlyHours / len(workDays)
+        stdVals = np.random.normal(dayAvrgHours+.4,1,len(workDays))
+        sum = 0
+        i = 0
+
+        modifiedVals = list(map(int,stdVals))
+
+        for date in workDays:
+            hours = modifiedVals[i]
+            i += 1
+            if hours == 0:
+                continue
+            self.workDates.append(WorkTime(date, hours))
+            sum += hours
 
     def generatePDF(self):
         form.setUp(self.name)
         for entry in self.workDates:
             form.addEntry(entry)
+        form.finalize()
 
     def printMetrics(self):
         print("Hours Worked: ",self.overallHours, "Days worked: ", self.daysWorked)
@@ -105,18 +120,7 @@ def last_day_of_month(dateFormat):
 
 
 
-#setupPDF()
 
-#iterateMonths()
-
-#Set end date for last document 
-#entry = last_day_of_month(endDate)
-#fill_field(str(entry.day)+"."+str(entry.month)+"."+str(entry.year), "(bis)")
-
-#pdf_full()
-#print(str(filecount) + " File(s) generated!")
-
-#print("Filled in " + summe + " Hours")
 def start(name,hours,startDate, endDate):
     print("Process init with params: \n",name,hours,startDate, endDate)
     timeDoc = TimeDocumentation(name)
